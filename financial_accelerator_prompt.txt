@@ -1,0 +1,186 @@
+def get_prompt(argument):
+    prompt_1 = f"""
+    You are tasked with extracting and classifying financial accelerator or credit channel beliefs from Federal Open Market Committee (FOMC) speaker statements. The financial accelerator describes how shocks to the economy are amplified through feedback effects between credit market conditions and real economic activity.
+
+    ## Your Task
+
+    Classify the speaker's belief about the financial accelerator or credit channel based on their quote. You must determine whether the speaker believes that credit market conditions significantly amplify economic shocks, have little amplifying effect, have a moderate effect, or if no belief is expressed.
+
+    ## Classification Categories
+
+    **STRONG**: The speaker indicates that credit market conditions SIGNIFICANTLY amplify economic shocks through feedback effects between financial conditions and real activity.
+
+    **WEAK**: The speaker indicates that credit market conditions have LITTLE or NO amplifying effect on economic shocks, or that financial-real economy linkages are minimal.
+
+    **MODERATE**: The speaker indicates a QUALIFIED or PARTIAL amplification mechanism between credit markets and real economic activity.
+
+    **NULL**: The speaker does NOT express a financial accelerator or credit channel belief (this is the default).
+
+    ## Classification Process
+
+    Follow this systematic process to classify the quote:
+
+    ### Step 1: Check for Explicit Financial Accelerator/Credit Channel Mentions
+
+    If the quotation explicitly mentions "financial accelerator," "credit channel," "credit transmission mechanism," or "balance sheet channel" and expresses a view about it, classify as follows:
+    - "Financial accelerator is broken/minimal/insignificant" → WEAK
+    - "Financial accelerator remains strong/powerful/significant" → STRONG
+    - "Financial accelerator exists but is weaker than before" → MODERATE
+
+    If there is an explicit mention with a clear view, proceed directly to classification. Otherwise, continue to Step 2.
+
+    ### Step 2: Identify Required Components
+
+    For a financial accelerator or credit channel belief to be present, the quote must mention BOTH of these components:
+
+    **CREDIT MARKET CONDITIONS** (at least one of):
+    - Credit availability, credit access, lending standards, credit conditions
+    - Bank lending, loan growth, credit flows
+    - Credit spreads, risk premia, borrowing costs
+    - Financial conditions, financial stress, financial tightness/ease
+    - Balance sheet strength/weakness, net worth, collateral values
+    - Leverage, debt burdens, debt service
+    - Credit constraints, credit frictions, borrowing constraints
+
+    **REAL ECONOMIC ACTIVITY** (at least one of):
+    - Investment, business spending, capital expenditures
+    - Consumption, consumer spending, household expenditures
+    - GDP growth, output, economic activity
+    - Employment, hiring decisions
+    - Business formation, entrepreneurship
+    - Asset prices affecting wealth effects
+    - Real economy effects, economic momentum
+
+    If BOTH components are NOT present, classify as NULL.
+
+    ### Step 3: Identify Causal Connection with Amplification
+
+    If both components are present, determine whether the speaker connects them causally with an emphasis on AMPLIFICATION or FEEDBACK. Simply mentioning both concepts without linking them is NOT sufficient for classification.
+
+    **Signs of NO causal connection** (classify as NULL):
+    - Only describes data without interpreting the relationship
+    - Discusses policy responses without explaining the transmission mechanism
+    - Provides historical narrative without making causal claims
+    - Mentions both concepts in separate contexts without connecting them
+    - Describes one-time effects without amplification dynamics
+
+    **Signs of causal connection with amplification** (proceed to Step 4):
+    - Uses amplification language: "magnifies", "amplifies", "reinforces", "feedback", "spiral"
+    - Expresses concern about deteriorating/improving cycles
+    - Explains mechanisms where financial and real effects reinforce each other
+    - Discusses how shocks propagate through the financial system to the real economy
+    - Describes balance sheet effects that feed back into credit conditions
+
+    ### Step 4: Classify the Type of Relationship
+
+    If a causal connection with amplification exists, classify based on the language and strength of the relationship:
+
+    #### STRONG Classification
+
+    Use when the speaker indicates credit markets SIGNIFICANTLY amplify economic shocks through feedback mechanisms.
+
+    **Strong indicators:**
+    - Amplification language: "magnifies", "amplifies", "multiplies", "reinforces"
+    - Feedback/spiral language: "feedback loop", "self-reinforcing", "spiral", "cascade"
+    - Causal chains: "tighter credit → weaker balance sheets → tighter credit"
+    - Concern about propagation: "spillover", "contagion", "transmission"
+    - Historical validation: "as in 2008", "financial crisis showed"
+
+    **Examples:**
+    - "Tighter credit conditions are amplifying the downturn as weakening balance sheets further constrain lending"
+    - "The deterioration in financial conditions will magnify the impact on investment spending"
+    - "We're seeing a self-reinforcing cycle where credit constraints reduce spending, which weakens balance sheets, which tightens credit further"
+    - "Balance sheet effects are creating powerful feedback mechanisms between financial and real sectors"
+    - "Credit market disruptions will propagate through the economy, significantly amplifying the initial shock"
+
+    #### WEAK Classification
+
+    Use when the speaker indicates credit markets have LITTLE or NO amplifying effect on economic shocks.
+
+    **Strong indicators:**
+    - Disconnection language: "despite tight credit", "credit hasn't constrained", "minimal impact"
+    - Direct transmission only: "one-time effect", "direct but not amplified", "no feedback"
+    - Resilience emphasis: "strong balance sheets", "well-capitalized", "robust credit access"
+    - Other factors dominate: "driven by fundamentals not credit", "monetary policy matters more"
+    - Skepticism: "credit channel is weak", "limited transmission", "doesn't amplify"
+
+    **Examples:**
+    - "Despite tighter lending standards, business investment has remained robust"
+    - "The credit channel appears quite weak in this cycle"
+    - "Strong balance sheets are limiting any amplification effects"
+    - "Credit conditions affect activity, but we're not seeing significant multiplier effects"
+    - "Firms have ample access to finance; credit is not the constraint"
+    - "The financial accelerator mechanism has been minimal in recent years"
+
+    #### MODERATE Classification
+
+    Use when the speaker indicates a QUALIFIED or PARTIAL amplification mechanism.
+
+    **Strong indicators:**
+    - Hedging: "some amplification", "modest feedback", "limited reinforcement"
+    - Conditionality: "depends on balance sheet strength", "varies by sector", "in certain circumstances"
+    - Partial effects: "affects some borrowers but not others", "investment more than consumption"
+    - Weakening: "less amplification than past cycles", "muted compared to 2008"
+    - Mixed signals: "credit tightening in some areas but not others"
+
+    **Examples:**
+    - "Credit conditions are creating some amplification, but effects are more modest than in previous cycles"
+    - "The financial accelerator is operating but appears weaker than historical episodes"
+    - "Small businesses face credit constraints that amplify shocks, though large firms have ample access"
+    - "We see limited feedback effects between financial and real sectors"
+    - "Credit conditions matter, but balance sheet strength varies significantly across borrowers"
+
+    ### Step 5: Handle Special Cases
+
+    #### Forecasts and Projections
+    Only classify if the reasoning reveals financial accelerator logic:
+    - "I forecast slower growth" → NULL (no mechanism stated)
+    - "I forecast slower growth because credit tightening will amplify the downturn" → STRONG (amplification mechanism stated)
+
+    #### Historical References
+    Only classify if the speaker endorses or rejects the amplification mechanism:
+    - "Credit was tight in 2008" → NULL (just description)
+    - "The 2008 crisis showed how credit dynamics amplify shocks" → STRONG (endorses mechanism)
+    - "Unlike 2008, credit conditions aren't amplifying this downturn" → WEAK (rejects mechanism)
+
+    #### Policy Discussions
+    Only classify if the speaker explains the policy through credit channel logic:
+    - "We should ease policy" → NULL (no mechanism)
+    - "We should ease to prevent credit tightening from amplifying the downturn" → STRONG (mechanism stated)
+
+    #### Financial Stability vs. Credit Channel
+    Focus on AMPLIFICATION of macroeconomic shocks, not just financial stability:
+    - "Banks are well-capitalized" → NULL (stability statement, no amplification claim)
+    - "Strong bank capital reduces credit channel amplification" → WEAK (explicitly about dampening amplification)
+
+    #### One-Time vs. Feedback Effects
+    Distinguish between direct effects and amplifying feedback:
+    - "Higher rates will reduce credit-financed spending" → NULL (direct effect, no amplification)
+    - "Higher rates will trigger a feedback loop where falling collateral values tighten credit further" → STRONG (amplification feedback)
+
+    ## Output Format
+
+    Provide your classification in well-formed XML format:
+
+    ```xml
+    <classification>
+    <credit_channel>[strong|weak|moderate|null]</credit_channel>
+    <reasoning>[Brief explanation in 1-2 sentences referencing key phrases from the quote]</reasoning>
+    </classification>
+    ```
+
+    **IMPORTANT REMINDERS:**
+    - Default to NULL unless the speaker clearly expresses a belief about how credit market conditions AMPLIFY economic shocks through feedback effects
+    - Describing both credit conditions and real activity without connecting them through an amplification mechanism is NOT sufficient for classification
+    - Simple direct effects (credit affects spending) are NOT sufficient; look for AMPLIFICATION, FEEDBACK, or REINFORCING dynamics
+    - Your reasoning must cite specific phrases from the quotation
+    - Your XML output must be well-formed and machine-readable"""
+
+    prompt_2 = f"""
+    Here is the economic argument you need to analyze:
+    <economic_argument>
+    {argument}
+    </economic_argument>
+    """
+
+    return prompt_1, prompt_2

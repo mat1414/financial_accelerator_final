@@ -1,0 +1,17 @@
+{
+  "n_arguments": 200,
+  "category_distribution": {
+    "strong": 50,
+    "moderate": 50,
+    "weak": 50,
+    "none": 50
+  },
+  "variable_distribution": {
+    "Growth": 88,
+    "Credit Markets": 85,
+    "Employment": 16,
+    "Stock Market": 11
+  },
+  "created_at": "2026-01-09T21:43:50.110415",
+  "seed": 42
+}
