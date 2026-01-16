@@ -49,9 +49,8 @@ def load_coding_data_from_file(file_content):
     return pd.read_csv(io.StringIO(file_content.decode('utf-8')), keep_default_na=False, na_values=[''])
 
 
-@st.cache_data
 def load_default_coding_data():
-    """Load the default coding data from the repo."""
+    """Load the default coding data from the repo (no cache to ensure fresh data on deploy)."""
     coding_file = SCRIPT_DIR / 'validation_samples' / 'production' / 'coding_financial_accelerator.csv'
     if coding_file.exists():
         return pd.read_csv(coding_file, keep_default_na=False, na_values=[''])
