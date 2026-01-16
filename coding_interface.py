@@ -31,7 +31,7 @@ HIDDEN_COLUMNS = ['claude_credit_channel', 'claude_credit_channel_category']
 OUTPUT_COLUMNS = [
     'coding_id', 'original_index', 'coder_name', 'classification',
     'claude_credit_channel', 'claude_credit_channel_category',
-    'quotation', 'description', 'variable', 'stablespeaker', 'ymd',
+    'quotation', 'variable', 'stablespeaker', 'ymd',
     'notes', 'coded_at'
 ]
 
@@ -67,7 +67,7 @@ def get_results_csv(results, coding_df):
 
     # Merge with coding_df to get all the extra columns
     merged = results_df.merge(
-        coding_df[['coding_id', 'original_index', 'quotation', 'description',
+        coding_df[['coding_id', 'original_index', 'quotation',
                    'variable', 'stablespeaker', 'ymd',
                    'claude_credit_channel', 'claude_credit_channel_category']],
         on='coding_id',
@@ -300,8 +300,6 @@ def main():
         current_row = coding_df.iloc[current_index]
         coding_id = current_row['coding_id']
         quotation = current_row['quotation']
-        description = current_row.get('description', '')
-        explanation = current_row.get('explanation', '')
         variable = current_row.get('variable', '')
 
         is_coded = coding_id in st.session_state.coded_ids
@@ -328,28 +326,6 @@ def main():
                 </div>""",
                 unsafe_allow_html=True
             )
-
-            # Description
-            if pd.notna(description) and str(description).strip():
-                st.markdown("**Description:**")
-                st.markdown(
-                    f"""<div style="background-color: #e8f4f8; padding: 15px;
-                    border-radius: 8px; font-size: 14px; margin-top: 10px;">
-                    {description}
-                    </div>""",
-                    unsafe_allow_html=True
-                )
-
-            # Explanation
-            if pd.notna(explanation) and str(explanation).strip():
-                st.markdown("**Explanation:**")
-                st.markdown(
-                    f"""<div style="background-color: #fff4e6; padding: 15px;
-                    border-radius: 8px; font-size: 14px; margin-top: 10px;">
-                    {explanation}
-                    </div>""",
-                    unsafe_allow_html=True
-                )
 
         with col2:
             st.subheader("Classification")
