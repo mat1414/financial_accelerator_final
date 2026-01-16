@@ -1,18 +1,18 @@
 {
   "strong": {
-    "available": 413,
-    "sampled": 60
+    "available": 480,
+    "sampled": 50
   },
   "moderate": {
-    "available": 29,
-    "sampled": 29
+    "available": 296,
+    "sampled": 50
   },
   "weak": {
-    "available": 117,
-    "sampled": 60
+    "available": 353,
+    "sampled": 50
   },
   "null": {
-    "available": 63822,
-    "sampled": 51
+    "available": 81573,
+    "sampled": 50
   }
 }
