@@ -299,6 +299,7 @@ def main():
         current_row = coding_df.iloc[current_index]
         coding_id = current_row['coding_id']
         quotation = current_row['quotation']
+        description = current_row.get('description', '')
         variable = current_row.get('variable', '')
 
         is_coded = coding_id in st.session_state.coded_ids
@@ -325,6 +326,17 @@ def main():
                 </div>""",
                 unsafe_allow_html=True
             )
+
+            # Description (context about what the speaker is discussing)
+            if description:
+                st.markdown("**Description:**")
+                st.markdown(
+                    f"""<div style="background-color: #e8eaed; padding: 15px;
+                    border-radius: 8px; font-size: 14px; line-height: 1.5; font-style: italic;">
+                    {description}
+                    </div>""",
+                    unsafe_allow_html=True
+                )
 
         with col2:
             st.subheader("Classification")
