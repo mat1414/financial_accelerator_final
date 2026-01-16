@@ -1,6 +1,6 @@
-# Financial Accelerator Classification Tool
+# Financial Accelerator / Credit Channel Classification Tool
 
-Human validation tool for Claude's classifications of FOMC speaker beliefs about the financial accelerator/credit channel - how credit market conditions amplify economic shocks through feedback effects.
+Human validation tool for Claude's classifications of FOMC speaker beliefs about the credit channel - whether credit market conditions affect or amplify economic activity.
 
 ## Quick Links
 
@@ -11,12 +11,13 @@ Human validation tool for Claude's classifications of FOMC speaker beliefs about
 
 ## Purpose
 
-We used Claude to classify ~71,000 FOMC transcript quotes for beliefs about the financial accelerator mechanism. This tool allows human coders to independently classify a stratified sample of 200 quotes, enabling us to measure Claude's accuracy.
+We used Claude to classify ~64,000 FOMC transcript quotes for beliefs about the credit channel mechanism. This tool allows human coders to independently classify a stratified sample of ~200 quotes, enabling us to measure Claude's accuracy.
 
 **What we're measuring:**
-- Does the speaker believe credit market conditions **significantly amplify** economic shocks? (feedback effects)
-- Does the speaker believe credit markets have **little amplifying effect**?
-- Classification categories: STRONG, WEAK, MODERATE, NONE
+- Does the speaker believe credit conditions **significantly amplify** economic shocks through feedback?
+- Does the speaker believe credit conditions **directly affect** economic activity?
+- Does the speaker believe credit has **little/no effect** on activity?
+- Classification categories: STRONG, MODERATE, WEAK, NULL
 
 ---
 
@@ -29,15 +30,16 @@ accelerator/
 ├── requirements.txt                       # Python dependencies
 ├── .gitignore                             # Excludes large files from git
 ├── Financial_Accelerator_QuickStart.md   # Quick reference for coders
+├── financial_accelerator_prompt.txt       # Claude's classification prompt
 ├── validation_samples/
 │   └── production/
-│       ├── coding_financial_accelerator.csv  # 200 sampled arguments
+│       ├── coding_financial_accelerator.csv  # ~200 sampled arguments
 │       └── stats_financial_accelerator.json  # Sample statistics
 └── sampler/                               # LOCAL ONLY (not deployed)
     └── financial_accelerator_sampler.py   # Script to generate samples
 ```
 
-**Note:** The `sampler/` folder and `.pkl` files are in `.gitignore` and not pushed to GitHub. They contain large source data and are only needed to regenerate samples.
+**Note:** The `sampler/` folder and `.pkl` files are in `.gitignore` and not pushed to GitHub.
 
 ---
 
@@ -54,23 +56,22 @@ accelerator/
 
 | Category | Meaning |
 |----------|---------|
-| **STRONG** | Credit markets SIGNIFICANTLY amplify economic shocks through feedback |
-| **WEAK** | Credit markets have LITTLE/NO amplifying effect on shocks |
-| **MODERATE** | Qualified or partial amplification mechanism |
-| **NONE** | No financial accelerator belief expressed (default) |
+| **STRONG** | Credit conditions SIGNIFICANTLY AMPLIFY shocks through feedback effects |
+| **MODERATE** | Qualified amplification OR direct credit effects on activity |
+| **WEAK** | Credit conditions have LITTLE/NO effect on economic activity |
+| **NULL** | No credit channel belief expressed (default) |
 
-### Key Concept: Amplification vs. Direct Effects
+### Key Concept: Three Types of Relationships
 
-The financial accelerator is about **amplification through feedback**, not just direct effects:
-
-- Direct effect: "Higher rates reduce borrowing" -> **NONE**
-- Amplification: "Tighter credit weakens balance sheets, which further tightens credit" -> **STRONG**
+1. **Amplification (STRONG/MODERATE):** Credit conditions amplify shocks through feedback
+2. **Direct Effect (MODERATE):** Credit affects activity, but no feedback language
+3. **Denial (WEAK):** Credit doesn't meaningfully affect activity
 
 ### Important
 
 - **Save often!** Download your CSV every 20-30 arguments
 - To resume: upload your saved CSV via "Resume Session"
-- When in doubt, select NONE
+- When in doubt, select NULL
 
 See `Financial_Accelerator_QuickStart.md` for detailed guidelines and examples.
 
@@ -84,31 +85,28 @@ See `Financial_Accelerator_QuickStart.md` for detailed guidelines and examples.
 2. Sign in with GitHub
 3. Click "New app"
 4. Configure:
-   - Repository: `[your-username]/financial_accelerator`
+   - Repository: `[your-username]/accelerator`
    - Branch: `main`
    - Main file: `coding_interface.py`
 5. Click "Deploy"
 
-The app will rebuild automatically when you push changes to the GitHub repo.
-
 ### Updating the Sample Data
 
-If you need to regenerate the 200-argument sample:
+If you need to regenerate the sample:
 
 ```bash
-cd accelerator/sampler
-python financial_accelerator_sampler.py
+cd accelerator
+python sampler/financial_accelerator_sampler.py
 ```
 
 This will:
-1. Load `../financial_accelerator_arguments_with_classification.pkl`
+1. Load `financial_accelerator_classifications.pkl` and join with source data
 2. Deduplicate quotations
-3. Create a stratified sample (50 per category)
-4. Output to `../validation_samples/production/coding_financial_accelerator.csv`
+3. Create a stratified sample (60 STRONG, 29 MODERATE, 60 WEAK, 50 NULL)
+4. Output to `validation_samples/production/coding_financial_accelerator.csv`
 
 Then commit and push:
 ```bash
-cd ..
 git add validation_samples/
 git commit -m "Regenerate sample data"
 git push origin main
@@ -125,7 +123,7 @@ When coders complete their work, they'll download a CSV with these columns:
 | `coder_name` | Who coded this |
 | `classification` | Human's classification |
 | `claude_credit_channel` | Claude's numeric value (1.0, 0.0, -1.0, NaN) |
-| `claude_credit_channel_category` | Claude's category (strong, moderate, weak, none) |
+| `claude_credit_channel_category` | Claude's category (strong, moderate, weak, null) |
 | `quotation` | The quote text |
 | `notes` | Coder's notes (if any) |
 
@@ -140,38 +138,14 @@ print(f"Agreement rate: {df['agree'].mean():.1%}")
 
 ---
 
-## Data Pipeline
-
-```
-financial_accelerator_arguments_with_classification.pkl (76K rows)
-    │
-    ▼ [Deduplicate on quotation]
-    │
-71K unique arguments
-    │
-    ▼ [sampler/financial_accelerator_sampler.py]
-    │
-coding_financial_accelerator.csv (200 rows, stratified sample)
-    │
-    ▼ [Human coders use Streamlit app]
-    │
-coded_[name]_financial_accelerator_[timestamp].csv
-    │
-    ▼ [Analysis]
-    │
-Agreement metrics, confusion matrix, etc.
-```
-
----
-
 ## Classification Mapping
 
 | Claude Value | Category | Meaning |
 |--------------|----------|---------|
 | 1.0 | strong | Significant amplification through feedback |
-| 0.0 | moderate | Qualified/partial amplification |
-| -1.0 | weak | Little/no amplification |
-| NaN | none | No belief expressed |
+| 0.0 | moderate | Qualified amplification OR direct credit effects |
+| -1.0 | weak | Little/no effect on activity |
+| NaN | null | No belief expressed |
 
 ---
 

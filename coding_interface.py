@@ -46,7 +46,7 @@ st.set_page_config(
 @st.cache_data
 def load_coding_data_from_file(file_content):
     """Load the coding sample data from uploaded file."""
-    return pd.read_csv(io.StringIO(file_content.decode('utf-8')))
+    return pd.read_csv(io.StringIO(file_content.decode('utf-8')), keep_default_na=False, na_values=[''])
 
 
 @st.cache_data
@@ -54,7 +54,7 @@ def load_default_coding_data():
     """Load the default coding data from the repo."""
     coding_file = SCRIPT_DIR / 'validation_samples' / 'production' / 'coding_financial_accelerator.csv'
     if coding_file.exists():
-        return pd.read_csv(coding_file)
+        return pd.read_csv(coding_file, keep_default_na=False, na_values=[''])
     return None
 
 
@@ -245,7 +245,7 @@ def main():
         if resume_file:
             if st.button("Load Session"):
                 try:
-                    resume_df = pd.read_csv(resume_file)
+                    resume_df = pd.read_csv(resume_file, keep_default_na=False, na_values=[''])
 
                     # Validate the resume CSV
                     is_valid, message, matching_ids = validate_resume_csv(resume_df, coding_df)
@@ -363,17 +363,17 @@ def main():
             """)
 
             # Get default value from previous coding
-            categories = ['strong', 'weak', 'moderate', 'none']
+            categories = ['strong', 'moderate', 'weak', 'null']
             category_labels = {
-                'strong': 'STRONG - Credit markets SIGNIFICANTLY amplify economic shocks',
-                'weak': 'WEAK - Credit markets have LITTLE/NO amplifying effect',
-                'moderate': 'MODERATE - Qualified/partial amplification',
-                'none': 'NONE - No financial accelerator belief expressed'
+                'strong': 'STRONG - Credit conditions SIGNIFICANTLY AMPLIFY shocks through feedback',
+                'moderate': 'MODERATE - Qualified amplification OR direct credit effects',
+                'weak': 'WEAK - Credit conditions have LITTLE/NO effect on activity',
+                'null': 'NULL - No credit channel belief expressed'
             }
 
-            default_idx = 3  # Default to none
+            default_idx = 3  # Default to null
             if previous_coding:
-                prev_cat = previous_coding.get('classification', 'none')
+                prev_cat = previous_coding.get('classification', 'null')
                 if prev_cat in categories:
                     default_idx = categories.index(prev_cat)
 
@@ -404,104 +404,101 @@ def main():
             # Classification guide
             with st.expander("Classification Guide"):
                 st.markdown("""
-                ## What is the Financial Accelerator?
+                ## What is the Credit Channel / Financial Accelerator?
 
-                The financial accelerator describes how shocks to the economy are
-                **amplified through feedback effects** between credit market conditions
-                and real economic activity. Key concept: **amplification/feedback**,
-                not just direct effects.
+                Classify whether the speaker believes credit market conditions affect
+                or amplify economic activity. The quote must mention BOTH credit
+                conditions AND real economic activity, with a causal connection.
 
                 ---
 
                 ### STRONG
 
-                The speaker indicates credit market conditions **SIGNIFICANTLY AMPLIFY**
-                economic shocks through feedback mechanisms.
+                Credit conditions **SIGNIFICANTLY AMPLIFY** shocks through feedback effects.
 
                 **Key indicators:**
-                - Amplification language: "magnifies", "amplifies", "multiplies", "reinforces"
-                - Feedback/spiral language: "feedback loop", "self-reinforcing", "spiral", "cascade"
-                - Causal chains: "tighter credit -> weaker balance sheets -> tighter credit"
-                - Concern about propagation: "spillover", "contagion", "transmission"
+                - Feedback language: "self-reinforcing", "spiral", "vicious/virtuous cycle"
+                - Amplification language: "magnify", "amplify", "exacerbate", "compound"
+                - Explicit causal chains: "tighter credit -> weaker activity -> tighter credit"
+                - Propagation language: "spillover", "contagion", "cascade"
 
                 **Examples:**
-                - "Tighter credit conditions are amplifying the downturn as weakening
-                  balance sheets further constrain lending"
-                - "We're seeing a self-reinforcing cycle where credit constraints
-                  reduce spending, which weakens balance sheets, which tightens credit"
-                - "Balance sheet effects are creating powerful feedback mechanisms"
-
-                ---
-
-                ### WEAK
-
-                The speaker indicates credit markets have **LITTLE or NO amplifying effect**
-                on economic shocks.
-
-                **Key indicators:**
-                - Disconnection: "despite tight credit", "credit hasn't constrained"
-                - Direct only: "one-time effect", "no feedback"
-                - Resilience: "strong balance sheets", "well-capitalized"
-                - Other factors: "driven by fundamentals not credit"
-
-                **Examples:**
-                - "Despite tighter lending standards, business investment has remained robust"
-                - "The credit channel appears quite weak in this cycle"
-                - "Credit conditions affect activity, but we're not seeing multiplier effects"
+                - "Credit conditions are amplifying the downturn"
+                - "We're seeing a self-reinforcing cycle of credit tightening and weakness"
+                - "Falling asset prices tighten credit, which further depresses prices"
 
                 ---
 
                 ### MODERATE
 
-                The speaker indicates a **QUALIFIED or PARTIAL** amplification mechanism.
+                Either (a) **QUALIFIED amplification**, OR (b) **DIRECT EFFECT** of
+                credit on activity without explicit feedback.
 
-                **Key indicators:**
-                - Hedging: "some amplification", "modest feedback", "limited reinforcement"
-                - Conditionality: "depends on balance sheet strength", "varies by sector"
-                - Weakening: "less amplification than past cycles"
+                **Type A - Hedged amplification:**
+                - "some amplification", "modest feedback", "may be reinforcing"
+                - "amplifying effects for some borrowers", "muted feedback"
 
-                **Examples:**
-                - "Credit conditions are creating some amplification, but effects are
-                  more modest than in previous cycles"
-                - "Small businesses face credit constraints that amplify shocks,
-                  though large firms have ample access"
+                **Type B - Direct credit effects (no feedback language):**
+                - "Tighter credit is slowing investment"
+                - "Weak balance sheets are restraining consumption"
+                - "Credit availability is affecting business spending"
+                - "Balance sheet repair will take years, restraining growth"
 
                 ---
 
-                ### NONE (default)
+                ### WEAK
 
-                **No financial accelerator belief expressed.**
+                Credit conditions are **NOT meaningfully affecting** economic activity.
 
-                Use NONE when:
-                - Only mentions credit OR real activity (not both)
-                - Mentions both but no causal/amplification connection
-                - Describes data without interpreting amplification mechanism
-                - Discusses policy without explaining credit channel transmission
-                - Describes one-time/direct effects without feedback dynamics
+                **Key indicators:**
+                - Disconnection: "despite tight credit", "credit hasn't constrained"
+                - Resilience: "strong balance sheets", "well-capitalized"
+                - Other factors dominate: "driven by fundamentals not credit"
+                - Skepticism: "credit channel is weak", "limited transmission"
 
-                **Key distinction:** Simple "credit affects spending" is NOT enough.
-                Must show AMPLIFICATION, FEEDBACK, or REINFORCING dynamics.
+                **Examples:**
+                - "Credit is not the constraint"
+                - "Despite tight credit, investment has remained robust"
+                - "Spillovers have not materialized"
+
+                ---
+
+                ### NULL (default)
+
+                **No credit channel belief expressed.**
+
+                Use NULL when:
+                - Missing credit conditions OR real activity component
+                - Mentions both but no causal connection between them
+                - Pure wealth effects without credit mechanism
+                - Pure interest rate transmission without credit frictions
+                - Only describes data without causal interpretation
+
+                **NOT credit channel (classify as NULL):**
+                - "Lower asset prices reduce consumption through wealth effects"
+                - "Lower rates stimulate demand" (no credit friction logic)
+                - "Easing will boost the economy" (no mechanism stated)
 
                 ---
 
                 ### Special Cases
 
                 **Forecasts:** Only classify if reasoning reveals credit channel logic
-                - "I forecast slower growth" -> NONE
+                - "I forecast slower growth" -> NULL
+                - "I forecast slower growth because credit tightening will slow investment" -> MODERATE
                 - "I forecast slower growth because credit tightening will amplify" -> STRONG
 
-                **Historical references:** Only classify if speaker endorses/rejects mechanism
-                - "Credit was tight in 2008" -> NONE
-                - "2008 showed how credit dynamics amplify shocks" -> STRONG
+                **Wealth effects:** NULL unless connected to credit mechanisms
+                - "Falling home prices reduce consumption via wealth effects" -> NULL
+                - "Falling home prices constrain home equity borrowing" -> MODERATE
 
-                **One-time vs. Feedback:**
-                - "Higher rates will reduce credit-financed spending" -> NONE (direct)
-                - "Higher rates will trigger feedback where falling collateral
-                  values tighten credit further" -> STRONG (amplification)
+                **Duration vs. Amplification:**
+                - "Balance sheet repair will take years, restraining growth" -> MODERATE
+                - "Balance sheet problems create self-reinforcing weak growth" -> STRONG
 
                 ---
 
-                *When in doubt, select NONE.*
+                *When in doubt, select NULL.*
                 """)
 
         # Navigation
